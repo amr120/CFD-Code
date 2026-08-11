@@ -1,0 +1,218 @@
+<?xml version='1.0' ?>
+<!DOCTYPE Xdmf SYSTEM 'Xdmf.dtd' []>
+<Xdmf>
+	<Domain>
+		<Grid Name='grid' GridType='Collection' CollectionType='Spatial'>
+			<Grid Name='block0' GridType='Uniform'>
+				<Topology Type='3DSMESH' Dimensions='93 161 41'/>
+				<Geometry Type='X_Y_Z'>
+					<DataItem DataType='Float' Precision='4' Dimensions='93 161 41' Format='HDF'>
+						test.hdf5:/block0/x_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='93 161 41' Format='HDF'>
+						test.hdf5:/block0/r_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='93 161 41' Format='HDF'>
+						test.hdf5:/block0/rt_bp
+					</DataItem>
+				</Geometry>
+				<Attribute Name='V' AttributeType='Vector' Center='Node'>
+					<DataItem Dimensions='93 161 41 3' NumberType='Float' Precision='4' Format='HDF'>
+						test.hdf5:/block0/V_bp
+					</DataItem>
+				</Attribute>
+			</Grid>
+			<Grid Name='block1' GridType='Uniform'>
+				<Topology Type='3DSMESH' Dimensions='17 161 17'/>
+				<Geometry Type='X_Y_Z'>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 17' Format='HDF'>
+						test.hdf5:/block1/x_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 17' Format='HDF'>
+						test.hdf5:/block1/r_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 17' Format='HDF'>
+						test.hdf5:/block1/rt_bp
+					</DataItem>
+				</Geometry>
+				<Attribute Name='V' AttributeType='Vector' Center='Node'>
+					<DataItem Dimensions='17 161 17 3' NumberType='Float' Precision='4' Format='HDF'>
+						test.hdf5:/block1/V_bp
+					</DataItem>
+				</Attribute>
+			</Grid>
+			<Grid Name='block2' GridType='Uniform'>
+				<Topology Type='3DSMESH' Dimensions='93 161 49'/>
+				<Geometry Type='X_Y_Z'>
+					<DataItem DataType='Float' Precision='4' Dimensions='93 161 49' Format='HDF'>
+						test.hdf5:/block2/x_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='93 161 49' Format='HDF'>
+						test.hdf5:/block2/r_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='93 161 49' Format='HDF'>
+						test.hdf5:/block2/rt_bp
+					</DataItem>
+				</Geometry>
+				<Attribute Name='V' AttributeType='Vector' Center='Node'>
+					<DataItem Dimensions='93 161 49 3' NumberType='Float' Precision='4' Format='HDF'>
+						test.hdf5:/block2/V_bp
+					</DataItem>
+				</Attribute>
+			</Grid>
+			<Grid Name='block3' GridType='Uniform'>
+				<Topology Type='3DSMESH' Dimensions='17 161 17'/>
+				<Geometry Type='X_Y_Z'>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 17' Format='HDF'>
+						test.hdf5:/block3/x_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 17' Format='HDF'>
+						test.hdf5:/block3/r_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 17' Format='HDF'>
+						test.hdf5:/block3/rt_bp
+					</DataItem>
+				</Geometry>
+				<Attribute Name='V' AttributeType='Vector' Center='Node'>
+					<DataItem Dimensions='17 161 17 3' NumberType='Float' Precision='4' Format='HDF'>
+						test.hdf5:/block3/V_bp
+					</DataItem>
+				</Attribute>
+			</Grid>
+			<Grid Name='block4' GridType='Uniform'>
+				<Topology Type='3DSMESH' Dimensions='17 161 193'/>
+				<Geometry Type='X_Y_Z'>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 193' Format='HDF'>
+						test.hdf5:/block4/x_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 193' Format='HDF'>
+						test.hdf5:/block4/r_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 193' Format='HDF'>
+						test.hdf5:/block4/rt_bp
+					</DataItem>
+				</Geometry>
+				<Attribute Name='V' AttributeType='Vector' Center='Node'>
+					<DataItem Dimensions='17 161 193 3' NumberType='Float' Precision='4' Format='HDF'>
+						test.hdf5:/block4/V_bp
+					</DataItem>
+				</Attribute>
+			</Grid>
+			<Grid Name='block5' GridType='Uniform'>
+				<Topology Type='3DSMESH' Dimensions='17 161 97'/>
+				<Geometry Type='X_Y_Z'>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 97' Format='HDF'>
+						test.hdf5:/block5/x_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 97' Format='HDF'>
+						test.hdf5:/block5/r_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 97' Format='HDF'>
+						test.hdf5:/block5/rt_bp
+					</DataItem>
+				</Geometry>
+				<Attribute Name='V' AttributeType='Vector' Center='Node'>
+					<DataItem Dimensions='17 161 97 3' NumberType='Float' Precision='4' Format='HDF'>
+						test.hdf5:/block5/V_bp
+					</DataItem>
+				</Attribute>
+			</Grid>
+			<Grid Name='block6' GridType='Uniform'>
+				<Topology Type='3DSMESH' Dimensions='17 161 97'/>
+				<Geometry Type='X_Y_Z'>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 97' Format='HDF'>
+						test.hdf5:/block6/x_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 97' Format='HDF'>
+						test.hdf5:/block6/r_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 161 97' Format='HDF'>
+						test.hdf5:/block6/rt_bp
+					</DataItem>
+				</Geometry>
+				<Attribute Name='V' AttributeType='Vector' Center='Node'>
+					<DataItem Dimensions='17 161 97 3' NumberType='Float' Precision='4' Format='HDF'>
+						test.hdf5:/block6/V_bp
+					</DataItem>
+				</Attribute>
+			</Grid>
+			<Grid Name='block7' GridType='Uniform'>
+				<Topology Type='3DSMESH' Dimensions='17 50 193'/>
+				<Geometry Type='X_Y_Z'>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 50 193' Format='HDF'>
+						test.hdf5:/block7/x_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 50 193' Format='HDF'>
+						test.hdf5:/block7/r_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 50 193' Format='HDF'>
+						test.hdf5:/block7/rt_bp
+					</DataItem>
+				</Geometry>
+				<Attribute Name='V' AttributeType='Vector' Center='Node'>
+					<DataItem Dimensions='17 50 193 3' NumberType='Float' Precision='4' Format='HDF'>
+						test.hdf5:/block7/V_bp
+					</DataItem>
+				</Attribute>
+			</Grid>
+			<Grid Name='block8' GridType='Uniform'>
+				<Topology Type='3DSMESH' Dimensions='17 50 81'/>
+				<Geometry Type='X_Y_Z'>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 50 81' Format='HDF'>
+						test.hdf5:/block8/x_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 50 81' Format='HDF'>
+						test.hdf5:/block8/r_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='17 50 81' Format='HDF'>
+						test.hdf5:/block8/rt_bp
+					</DataItem>
+				</Geometry>
+				<Attribute Name='V' AttributeType='Vector' Center='Node'>
+					<DataItem Dimensions='17 50 81 3' NumberType='Float' Precision='4' Format='HDF'>
+						test.hdf5:/block8/V_bp
+					</DataItem>
+				</Attribute>
+			</Grid>
+			<Grid Name='block9' GridType='Uniform'>
+				<Topology Type='3DSMESH' Dimensions='93 161 33'/>
+				<Geometry Type='X_Y_Z'>
+					<DataItem DataType='Float' Precision='4' Dimensions='93 161 33' Format='HDF'>
+						test.hdf5:/block9/x_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='93 161 33' Format='HDF'>
+						test.hdf5:/block9/r_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='93 161 33' Format='HDF'>
+						test.hdf5:/block9/rt_bp
+					</DataItem>
+				</Geometry>
+				<Attribute Name='V' AttributeType='Vector' Center='Node'>
+					<DataItem Dimensions='93 161 33 3' NumberType='Float' Precision='4' Format='HDF'>
+						test.hdf5:/block9/V_bp
+					</DataItem>
+				</Attribute>
+			</Grid>
+			<Grid Name='block10' GridType='Uniform'>
+				<Topology Type='3DSMESH' Dimensions='93 161 53'/>
+				<Geometry Type='X_Y_Z'>
+					<DataItem DataType='Float' Precision='4' Dimensions='93 161 53' Format='HDF'>
+						test.hdf5:/block10/x_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='93 161 53' Format='HDF'>
+						test.hdf5:/block10/r_bp
+					</DataItem>
+					<DataItem DataType='Float' Precision='4' Dimensions='93 161 53' Format='HDF'>
+						test.hdf5:/block10/rt_bp
+					</DataItem>
+				</Geometry>
+				<Attribute Name='V' AttributeType='Vector' Center='Node'>
+					<DataItem Dimensions='93 161 53 3' NumberType='Float' Precision='4' Format='HDF'>
+						test.hdf5:/block10/V_bp
+					</DataItem>
+				</Attribute>
+			</Grid>
+		</Grid>
+	</Domain>
+</Xdmf>
+

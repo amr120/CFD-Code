@@ -1,0 +1,18 @@
+# Whittle Lab GitLab clones — lab-owned, recreate with Git_Pull_All (evtol is whittle-restricted: never re-host)
+AG/
+automated-blading/
+blading/
+EXP/
+evtol/
+MATLAB-Utilities/
+meshing/
+paraview/
+# Lab TURBOSTREAM-MATLAB toolkit (no .git but lab-owned)
+TS/
+# Bulk artifacts and junk
+*.g
+*.hdf5
+*.xdmf
+*.asv
+test/
+test.pdf

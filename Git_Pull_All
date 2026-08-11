@@ -1,0 +1,42 @@
+#!/bin/bash  
+echo "Updating all git repositories in " pwd 
+
+echo "checking autogrid for updates"
+cd autogrid
+git pull   
+cd ../
+
+echo "checking blading for updates"
+cd automated-blading
+git pull  
+cd ../
+
+echo "checking evtol for updates"
+cd evtol
+git pull  
+cd ../
+
+echo "checking MATLAB-Utilities for updates"
+cd MATLAB-Utilities
+git pull  
+cd ../
+
+echo "checking meshing for updates"
+cd meshing
+git pull  
+cd ../
+
+echo "checking paraview for updates"
+cd paraview
+git pull  
+cd ../
+
+
+echo "checking turbigen for updates"
+cd turbigen
+git pull  
+cd ../
+
+echo "I am done running "  
+
+

@@ -1,0 +1,13 @@
+diff --git a/ag_create_machine.py b/ag_create_machine.py
+index 741963b..a5454a8 100644
+--- a/ag_create_machine.py
++++ b/ag_create_machine.py
+@@ -181,7 +181,7 @@ for n in range(0,nn):
+     unselect_all()
+     r = row("row " + `n+1`)
+     r.select()
+-    r.set_flow_path_control_hub_distribution_uniform()
++#    r.set_flow_path_control_hub_distribution_uniform()
+     r.set_row_flow_path_number(int(c["n_j"][n]))
+     r.set_flow_path_control_hub_clustering(c["e_j"][n])
+     r.set_flow_path_control_shroud_clustering(c["e_j"][n])
