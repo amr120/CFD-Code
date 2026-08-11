@@ -21,13 +21,14 @@ mesh_cowl = 0;
 restart_cowl = 0;
 plot_pressure = 0;
 plot_chics = 1;
-plot_thrust = 1;
+plot_thrust = 0;     % needs '<des_name>_O#' nacelle cases, which don't exist for this design
 write_pv = 1;
 write_ibl = 0;
 
 % Input design name and parameters for run_des
 
-des_name = ['Phi06DUCTEDFANFIXRPM']; 
+
+des_name = ['Phi09DUCTEDFAN2FIXRPM']; 
 
 
 s = importdata([dr.geom append(des_name,'-mission.json')],'r');
@@ -387,7 +388,7 @@ if run_des == 1
     %I.m = mymission.mdot;
 
     % Set number of steps and initial guess
-    I.nstep = 200000; I.poisson_nstep = 10000; 
+    I.nstep = 500000; I.poisson_nstep = 20000; 
 
      I.guess = [1.2 1.2 * Vx_mean 0 0 2e5 0.0002];
 %     I.guess = [dr.ts 'IPM5_guess.dat'];
@@ -741,10 +742,12 @@ end
     
 %% Plot characteristics and calculate different fan operating points
 if plot_chics == 1
-    
-        % Figure window for geometry comparisons
-    h = figure('position',[1 41 1920 970]); hold on; grid on; box on; cols = lines(7); 
-    axis equal; axis([-0.03 0.18 0 0.11]);
+
+    % Make sure the Altitude atmosphere model is on the path (it lives under
+    % evtol/, which startup.m deliberately leaves off the path)
+    if exist('Altitude','file') == 0
+        addpath(fullfile(fileparts(fileparts(mfilename('fullpath'))),'evtol','BBSR'));
+    end
 
     % Define cut planes for evaluation
     coords = [2 7 ; 7 19];
@@ -765,8 +768,11 @@ if plot_chics == 1
     % Process all designs in test matrix
     phi_des = phi; nc = zeros(size(phi_des)); o = 1;
         
-    % Process the chic
-    [inlets,outlets,c,h_temp] = ts_plot_chic(dr.ts,[des_name 'E_M'],[],1,coords); 
+    % Process the chic - the constant-speed throttle line is saved by
+    % ts_run_chic as '<des_name>_M<mass>' (no 'E'; that prefix belonged to the
+    % external-cowl cases). Pass [] for the cuts so the inlet/outlet patch
+    % planes are used, matching the cached *_chic.mat files.
+    [inlets,outlets,c,h_temp] = ts_plot_chic(dr.ts,[des_name '_M'],[],1,[]);
     close(h_temp);
 
     % Plot the chic
@@ -895,19 +901,26 @@ if plot_chics == 1
         save([dr.ts des_name '_chic.mat'],'c','phi','Cptt','eta_f')
 
         % Calculate stall margin at static conditions
-        sm = (phi(1) - phi_chic(end-1)) / (phi(end) - phi_chic(end-1));  
+        sm = (phi(1) - phi_chic(end-1)) / (phi(end) - phi_chic(end-1));
 
-        % Record all variables
-        clear c; c.eta_f = eta_f(end); c.eta_p = eta_p(end); c.eta_ov = c.eta_f * c.eta_p;
-        c.eta_av = mean(eta_f); c.M_tip = M_tip(1); c.sm = sm; c.eta_cl = eta_f(2) * eta_p(2);
-        c.omega_cr = omega(end); c.omega_cl = omega(2); c.omega_st = omega(1); c.Mf = eta_p(1);
-        c.T_cr = T(end); c.T_st = T(1); c.T_cl = T(2);
+        % Record per-mission summary metrics (static/climb/cruise) into the
+        % design-sweep struct p. This needs the full 3-point mission; skip it
+        % for designs run at a single operating point.
+        if length(Vf) >= 3
 
-        % Record all data in arrays, preallocate on first case in loop
-        scalnames = fieldnames(c);
-        for v = 1:length(scalnames)
-            if o == 1; p.(scalnames{v}) = nan(size(phi_des)); end;
-            p.(scalnames{v})(o) = c.(scalnames{v}); 
+            % Record all variables
+            clear c; c.eta_f = eta_f(end); c.eta_p = eta_p(end); c.eta_ov = c.eta_f * c.eta_p;
+            c.eta_av = mean(eta_f); c.M_tip = M_tip(1); c.sm = sm; c.eta_cl = eta_f(2) * eta_p(2);
+            c.omega_cr = omega(end); c.omega_cl = omega(2); c.omega_st = omega(1); c.Mf = eta_p(1);
+            c.T_cr = T(end); c.T_st = T(1); c.T_cl = T(2);
+
+            % Record all data in arrays, preallocate on first case in loop
+            scalnames = fieldnames(c);
+            for v = 1:length(scalnames)
+                if o == 1; p.(scalnames{v}) = nan(size(phi_des)); end;
+                p.(scalnames{v})(o) = c.(scalnames{v});
+            end
+
         end
 
         % Print blade number
@@ -915,32 +928,33 @@ if plot_chics == 1
 
     end        
     
-    % Calculate fan pressure rise from external calc
-    coords = [2 7 ; 7 19];
-    [inlets,outlets,c,h_temp] = ts_plot_chic(dr.ts,[des_name 'E_O'],[],plot_avg,coords,[],1); 
-    
-    % Calculate fan flow coefficient at stator inlet
-    coords = [9 2 ; 7 19];
-    [~,~,c_phi,~] = ts_plot_chic(dr.ts,[des_name 'E_O'],[],plot_avg,coords,[],1); 
-    
-    % Plot operating points
-    cols = lines(7); mar = {'x' '+' 'v' 'o'};
-    for n = length(inlets):-1:1
-        figure(h.chic); plot(c_phi.phi(n),c.Cptt(n),'.','color',cols(2,:),'marker',mar{end-n+1});
-        figure(h.eta); plot(c_phi.phi(n),c.eta_poly(n),'.','color',cols(2,:),'marker',mar{end-n+1});
+    % Overlay the installed (external-cowl) operating points if those cases
+    % exist - there are none for this ducted-fan design, so this is skipped
+    if isempty(ts_get_files([dr.ts des_name 'E_O'],plot_avg)) == 0
+
+        % Calculate fan pressure rise from external calc
+        coords = [2 7 ; 7 19];
+        [inlets,outlets,c,h_temp] = ts_plot_chic(dr.ts,[des_name 'E_O'],[],plot_avg,coords,[],1);
+
+        % Calculate fan flow coefficient at stator inlet
+        coords = [9 2 ; 7 19];
+        [~,~,c_phi,~] = ts_plot_chic(dr.ts,[des_name 'E_O'],[],plot_avg,coords,[],1);
+
+        % Plot operating points
+        cols = lines(7); mar = {'x' '+' 'v' 'o'};
+        for n = length(inlets):-1:1
+            figure(h.chic); plot(c_phi.phi(n),c.Cptt(n),'.','color',cols(2,:),'marker',mar{end-n+1});
+            figure(h.eta); plot(c_phi.phi(n),c.eta_poly(n),'.','color',cols(2,:),'marker',mar{end-n+1});
+        end
+
+        % Plot exit swirl
+        figure(); hold on; grid on; box on; xlabel('Exit Swirl / ^\circ'); ylabel('Span');
+        for n = 1:length(inlets)
+            plot(ts_mass_average(outlets{n},'Alpha',2),ts_mass_average(outlets{n},'r_nondim',2))
+        end
+
     end
-    
-    % Add legends
-    figure(h.chic); legend(['2 Rows' leg leg]);
-    figure(h.eta); legend(['2 Rows' leg leg]);
-    
-    % Plot exit swirl
-    figure(); hold on; grid on; box on; xlabel('Exit Swirl / ^\circ'); ylabel('Span');
-    for n = 1:length(inlets)
-        plot(ts_mass_average(outlets{n},'Alpha',2),ts_mass_average(outlets{n},'r_nondim',2))
-    end
-    legend(flip(leg,2));
-    
+
 end
 
 

@@ -1,0 +1,143 @@
+diff --git a/ag_create_machine.py b/ag_create_machine.py
+index 741963b..92121f9 100644
+--- a/ag_create_machine.py
++++ b/ag_create_machine.py
+@@ -14,7 +14,7 @@ fid = open(directory + file_prefix + "config.dat","r")
+ c = dict()
+ for l in iter(fid):
+     w = l.split()
+-    c[w[0]] = map(float,w[1:]) 
++    c[w[0]] = map(float,w[1:])
+ fid.close()
+ 
+ # Determine number of rows
+@@ -181,11 +181,20 @@ for n in range(0,nn):
+     unselect_all()
+     r = row("row " + `n+1`)
+     r.select()
+-    r.set_flow_path_control_hub_distribution_uniform()
++#    r.set_flow_path_control_hub_distribution_uniform()
+     r.set_row_flow_path_number(int(c["n_j"][n]))
+     r.set_flow_path_control_hub_clustering(c["e_j"][n])
+     r.set_flow_path_control_shroud_clustering(c["e_j"][n])
+ 
++    # Set the number of constant (mid-span) flow-path cells as a fraction p_jc
++    # of the total flow-path points, if requested in config. Applied at row
++    # level so it takes effect regardless of hub/casing gaps or fillets.
++    if "p_jc" in c and c["p_jc"][0] != 0:
++        try:
++            r.set_flow_path_control_cst_cells_number(int(round(c["n_j"][n]*c["p_jc"][0])))
++        except:
++            print("WARNING: set_flow_path_control_cst_cells_number unavailable")
++
+ # Define tip and hub gaps
+ for n in range(0,nn):
+     unselect_all()
+@@ -204,6 +213,20 @@ for n in range(0,nn):
+         r.set_shroud_gap_interpolation(1)
+         r.set_shroud_gap_interpolation_span_location(c["o_cas"][n])
+ 
++        # Tweak2 (wizard-free 9-block): mesh the tip gap as a separate
++        # non-matching HO block group. This is the single lever that turns the
++        # 7-block default topology into the 9-block layout mesh_prop needs (it
++        # adds the two nj=2 gap blocks) - the same result the manual Row Wizard
++        # + shroud-gap step produces by hand, but set explicitly here.
++        if "tweak2" in c and c["tweak2"][0] != 0:
++            try:
++                b.set_b2b_hoh_topology_gap_non_matching_with_main_channel()
++                b.set_b2b_hoh_topology_enable_inlet_extension()
++                b.set_b2b_hoh_topology_enable_outlet_extension()
++                print("%% TWEAK2: non-matching HO gap + inlet/outlet extension (9-block) %%")
++            except:
++                print("WARNING: tweak2 topology API unavailable")
++
+     # Insert hub gap if not set to zero
+     if c["d_hub"][n] != 0:
+         g = b.hub_gap()
+@@ -296,10 +319,46 @@ for n in range(0,nn):
+     else:
+         b.set_b2b_default_topology_normal_outlet_angle()
+     
+-    # Periodicity and wake control
++    # Periodicity and wake control (wake off if requested in config)
+     b.set_b2b_default_topology_periodicity_type(1)
+-    b.set_b2b_default_topology_enable_wake_control()
+-    b.set_b2b_default_topology_enable_wake_prolongation()
++    if "wake" in c and c["wake"][0] == 0:
++        try:
++            b.set_b2b_default_topology_disable_wake_control()
++        except:
++            print("WARNING: disable_wake_control unavailable, leaving default")
++    else:
++        b.set_b2b_default_topology_enable_wake_control()
++        b.set_b2b_default_topology_enable_wake_prolongation()
++
++    # Free (floating) inlet / outlet angle if requested in config
++    if "free_in" in c and c["free_in"][0] != 0:
++        try:
++            b.set_b2b_default_topology_free_inlet_angle(1)
++        except:
++            print("WARNING: free_inlet_angle unavailable, leaving default")
++    if "free_out" in c and c["free_out"][0] != 0:
++        try:
++            b.set_b2b_default_topology_free_outlet_angle(1)
++        except:
++            print("WARNING: free_outlet_angle unavailable, leaving default")
++
++    # HOH inlet/outlet extension blocks if requested in config. This is the
++    # single difference between the hand Tweak2 mesh (HOHInletLenght/OutletLenght
++    # = 2, giving separate inlet+outlet H-blocks -> 9-block layout that mesh_prop
++    # needs) and the default (= 1, which collapses them to 7 blocks on wide,
++    # low-count passages).
++    if "hoh_ext" in c and c["hoh_ext"][0] != 0:
++        try:
++            # Match the hand Tweak2 mesh exactly: HOHMeshInlet/Outlet=1 (enabled),
++            # HOHMeshInletType/OutletType=1 (I-type). On a fully-licensed AUTOGRID
++            # this yields HOHInletLenght/OutletLenght=2 -> the 9-block layout.
++            b.set_b2b_hoh_topology_enable_inlet_extension()
++            b.set_b2b_hoh_topology_enable_outlet_extension()
++            b.set_b2b_hoh_topology_inlet_I_extension_type()
++            b.set_b2b_hoh_topology_outlet_I_extension_type()
++            print("%% HOH inlet/outlet extension enabled, I-type (9-block target) %%")
++        except:
++            print("WARNING: hoh extension API unavailable, leaving default")
+ 
+     # Grid points
+     b.set_b2b_default_topology_grid_point_number_azimutal_inlet(int(c["n_ai"][n]))
+@@ -342,7 +401,10 @@ r = row("row 1")
+ r.select()
+ 
+ # Manual flow paths control and smoothing
+-n_const = int(round(c["n_j"][0]/3))
++if "p_jc" in c and c["p_jc"][0] != 0:
++    n_const = int(round(c["n_j"][0]*c["p_jc"][0]))
++else:
++    n_const = int(round(c["n_j"][0]/3))
+ for n in range(0,nn):
+     unselect_all()
+     r = row("row " + `n+1`)
+@@ -468,6 +530,24 @@ for n in range(0,nn):
+ #    r.set_row_optimization_skewness_control("medium")
+ #    r.set_row_optimization_skewness_control_in_gap("medium")
+ 
++    # Increase the number of 3D mesh optimization steps if requested in config
++    # (AUTOGRID default is 100). More steps reduces skewness.
++    if "n_opt" in c and c["n_opt"][0] != 0:
++        try:
++            r.set_row_optimization_steps(int(c["n_opt"][0]))
++            r.set_row_optimization_steps_in_gap(int(c["n_opt"][0]))
++        except:
++            print("WARNING: set_row_optimization_steps unavailable, leaving default")
++
++    # Skewness-targeted optimisation if requested in config (1=low,2=medium,3=high)
++    if "skew_ctrl" in c and c["skew_ctrl"][0] != 0:
++        skew_lvl = {1:"low", 2:"medium", 3:"high"}.get(int(c["skew_ctrl"][0]), "medium")
++        try:
++            r.set_row_optimization_skewness_control(skew_lvl)
++            r.set_row_optimization_skewness_control_in_gap(skew_lvl)
++        except:
++            print("WARNING: set_row_optimization_skewness_control unavailable")
++
+ # Regenerate B2B
+ select_all()
+ set_active_control_layer_index(50)

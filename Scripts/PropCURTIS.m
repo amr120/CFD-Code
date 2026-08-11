@@ -31,7 +31,7 @@ rpm_all = [6952 8191 8545];
 
 
 %Vf = mymission.Vfs*mymission.ScaleFactor; alt = 0; leg = {'20'};
-%Vf = 20;
+Vf = 20; alt = 0; leg = {'20'};
 
 % Mesh parameters for all rows - high staggered topology
 % M.stin = [1 0]; M.stout = [0 0]; M.n_aid = [33 25]; M.n_aou = [33 25];

@@ -1,0 +1,357 @@
+diff --git a/bl_construct_blade.m b/bl_construct_blade.m
+index 068c394..63f51f3 100755
+--- a/bl_construct_blade.m
++++ b/bl_construct_blade.m
+@@ -170,6 +170,9 @@ b.xrrt = [xrrt_1 ; flip(xrrt_2(1:end-1,:,:),1)];
+ % Record camber surface and non-dimensional radii
+ b.xrrt_cam = xrrt_cam; b.r_nondim = r_nondim;
+ 
++% Remove non-fillet definition if present
++if isfield(b,'xrrt_F0') == 1; b = rmfield(b,'xrrt_F0'); end;
++
+ 
+ %% Plot selected blade sections
+ 
+diff --git a/bl_construct_fillet.m b/bl_construct_fillet.m
+index 5d204d9..33ed46e 100755
+--- a/bl_construct_fillet.m
++++ b/bl_construct_fillet.m
+@@ -99,9 +99,9 @@ if plot_stuff == 1
+         min(min(xyz(:,:,3)))-rad_max max(max(xyz(:,:,3)))+rad_max...
+         min(min(xyz(:,:,2)))-rad_max max(max(xyz(:,:,2)))+rad_max]);
+     set(gca,'clippingstyle','rectangle');
+-%     for n = find(F.flag == 1)
+-%         mesh(xrrt_end{n}(:,:,1),xrrt_end{n}(:,:,3),xrrt_end{n}(:,:,2))
+-%     end
++    % for n = find(F.flag == 1)
++    %     mesh(xrrt_end{n}(:,:,1),xrrt_end{n}(:,:,3),xrrt_end{n}(:,:,2))
++    % end
+ 
+     % Plot the meridional surfaces
+     for n = find(F.flag == 1)
+diff --git a/bl_construct_splitter.m b/bl_construct_splitter.m
+old mode 100644
+new mode 100755
+diff --git a/bl_create_machine.m b/bl_create_machine.m
+index 9ccb7b8..90a9a85 100755
+--- a/bl_create_machine.m
++++ b/bl_create_machine.m
+@@ -10,7 +10,7 @@ end
+ if exist('monitor_job','var') == 0
+     monitor_job = 1;
+ end
+-
++        
+ % Default to run AUTOGRID
+ if exist('run_ag','var') == 0
+     run_ag = 1;
+@@ -82,7 +82,7 @@ for n = 1:nn
+         B{n}.xrrt(:,:,3) = - B{n}.xrrt(:,:,3);
+         
+     elseif I.rpm(n) == 0 && B{n}.xrrt(1,j_mid,3) > B{n}.xrrt(i_te,j_mid,3)
+-        if n == 1; disp('Not flipping IGV'); continue; end;
++        if n == 1; disp('Not flipping IGV'); continue; end
+         % Flip stator direction
+         B{n}.xrrt(:,:,3) = - B{n}.xrrt(:,:,3);
+         disp('Flipping stator');
+@@ -95,7 +95,6 @@ if plot_stuff == 1
+     figure(h.mer)
+     for n = 1:nn
+         plot3(B{n}.xrrt(:,[1 end],1),B{n}.xrrt(:,[1 end],2),B{n}.xrrt(:,[1 end],3),'-','color',C(n,:))
+-%         plot3(B{n}.xrrt(:,:,1),B{n}.xrrt(:,:,2),B{n}.xrrt(:,:,3),'-','color',C(n,:))
+     end
+ end
+ 
+@@ -192,7 +191,7 @@ xr_bc(end,:,:) = cat(3,ones(1,nj) * B{end}.x_out,...
+     r_nondim * (xr_cas(end,2) - xr_hub(end,2)) + xr_hub(end,2));
+ 
+ % Choose type of leading and trailing edge to use
+-if use_F0 == 0; xr_type = 'xrrt'; else xr_type = 'xrrt_F0'; end;
++if use_F0 == 0; xr_type = 'xrrt'; else xr_type = 'xrrt_F0'; end
+ 
+ % Find blade leading and trailing edge coordinates
+ xr_le{n} = cell(nn,1); xr_te{n} = cell(nn,1);
+@@ -257,6 +256,34 @@ for n = 1:nn
+     xr_row{n}(2,:,1) = x_te(n,:) + M.dx_row(n);
+ end
+ 
++% Ensure no overlap of leading and trailing edge lines with the fillets
++for n = 1:nn
++    if F{n}.flag(1) == 1
++        dx = xr_row{n}(1,1,1) - min(B{n}.xrrt(:,1,1));
++        if dx > 0
++            xr_row{n}(1,:,1) = smooth(xr_row{n}(1,:,1) - (dx + 0.1 * M.dx_row(n)) * ...
++                interp1([0 0.1 1],[1 0 0],r_nondim,'pchip'));
++        end
++        dx = max(B{n}.xrrt(:,1,1)) - xr_row{n}(2,1,1);
++        if dx > 0
++            xr_row{n}(2,:,1) = smooth(xr_row{n}(2,:,1) + (dx + 0.1 * M.dx_row(n)) * ...
++                interp1([0 0.1 1],[1 0 0],r_nondim,'pchip'));
++        end
++    end
++    if F{n}.flag(2) == 1
++        dx = xr_row{n}(1,end,1) - min(B{n}.xrrt(:,end,1));
++        if dx > 0
++            xr_row{n}(1,:,1) = smooth(xr_row{n}(1,:,1) - (dx + 0.1 * M.dx_row(n)) * ...
++                interp1([0 0.9 1],[0 0 1],r_nondim,'pchip'));
++        end
++        dx = max(B{n}.xrrt(:,end,1)) - xr_row{n}(2,end,1);
++        if dx > 0
++            xr_row{n}(2,:,1) = smooth(xr_row{n}(2,:,1) + (dx + 0.1 * M.dx_row(n)) * ...
++                interp1([0 0.9 1],[0 0 1],r_nondim,'pchip'));
++        end
++    end
++end
++
+ % Fit trailing edge z-constant lines within the domain
+ for n = 1:nn-1
+     if sum(xr_row{n}(2,:,1) > xr_bc(n+1,:,1)) > 0
+@@ -282,7 +309,8 @@ for n = 1:nn
+         
+         % Create a new line on upstream edge of stub
+         p = (xr_stb{n}(1,1,1) - xr_stb{n}(1,2,1)) / (xr_bc(n,1,1) - xr_stb{n}(1,2,1));
+-        x = p * (xr_bc(n,:,1) - xr_row{n}(1,:,1)) + xr_row{n}(1,:,1);
++        x = p .* (xr_bc(n,:,1) - xr_row{n}(1,:,1)) + xr_row{n}(1,:,1);
++        x = x + linspace(0,D{n}.dx_mp,nj);
+         xr_row{n} = [cat(3,x,zeros(1,nj,1)) ; xr_row{n}];
+     end
+     if isfield(D{n},'bleed') == 1
+@@ -300,6 +328,7 @@ for n = 1:nn
+         % Create a new line on upstream edge of stub
+         p = (xr_stb{n}(1,1,1) - xr_stb{n}(1,2,1)) / (xr_bc(n,end,1) - xr_stb{n}(1,2,1));
+         x = p * (xr_bc(n,:,1) - xr_row{n}(1,:,1)) + xr_row{n}(1,:,1);
++        x = x + linspace(D{n}.dx_mp,0,nj);
+         xr_row{n} = [cat(3,x,zeros(1,nj,1)) ; xr_row{n}];
+         
+     end
+@@ -375,19 +404,19 @@ save([dr.geom file_prefix 'xr_stb.mat'],'xr_stb')
+ % Assemble configuration variables into a single structure
+ c.s_hub = zeros(1,nn); c.s_cas = zeros(1,nn); c.d_hub = zeros(1,nn); c.d_cas = zeros(1,nn);
+ c.f_hub = zeros(1,nn); c.f_cas = zeros(1,nn); 
+-for n = 1:nn; c.N(n) = B{n}.N; end;
+-for n = 1:nn; if isfield(D{n},'hub') == 1 && D{n}.flag(1) ~= 0; c.d_hub(n) = D{n}.hub; end; end;
+-for n = 1:nn; if isfield(D{n},'cas') == 1 && D{n}.flag(2) ~= 0; c.d_cas(n) = D{n}.cas; end; end;
++for n = 1:nn; c.N(n) = B{n}.N; end
++for n = 1:nn; if isfield(D{n},'hub') == 1 && D{n}.flag(1) ~= 0; c.d_hub(n) = D{n}.hub; end; end
++for n = 1:nn; if isfield(D{n},'cas') == 1 && D{n}.flag(2) ~= 0; c.d_cas(n) = D{n}.cas; end; end
+ for n = 1:nn
+     if isfield(D{n},'shroud') == 1
+         c.s_hub(n) = D{n}.shroud(1); c.s_cas(n) = D{n}.shroud(2); 
+     end
+     if isfield(D{n},'bleed') == 1; c.s_cas(n) = 1; end
+ end
+-for n = 1:nn; if isfield(F{n},'hub') == 1 && F{n}.flag(1) ~= 0; 
+-        c.f_hub(n) = min(F{n}.hub.rad1); end; end;
+-for n = 1:nn; if isfield(F{n},'cas') == 1 && F{n}.flag(2) ~= 0; 
+-        c.f_cas(n) = min(F{n}.cas.rad1); end; end;
++for n = 1:nn; if isfield(F{n},'hub') == 1 && F{n}.flag(1) ~= 0
++        c.f_hub(n) = min(F{n}.hub.rad1); end; end
++for n = 1:nn; if isfield(F{n},'cas') == 1 && F{n}.flag(2) ~= 0
++        c.f_cas(n) = min(F{n}.cas.rad1); end; end
+ c.rpm = I.rpm;
+ 
+ % Calculate z-constant spacings for flow path control
+@@ -434,7 +463,7 @@ for n = 1:nn
+     
+     % Mixing planes in intermediate rows
+     if n < nn
+-        if length(xr_row{n}) == 3; i_le = 2; else i_le = 1; end;
++        if length(xr_row{n}) == 3; i_le = 2; else i_le = 1; end
+         p = (xr_bc(n+1,1,1) - xr_row{n}(end,1,1)) / (xr_row{n+1}(i_le,1,1) - xr_row{n}(end,1,1));
+         c.e_out_hub(n) = (p * c.e_le_hub(n+1)^fac + (1-p) * c.e_te_hub(n)^fac)^fac;
+         c.o_out_hub(n) = p * (c.o_le_hub(n+1) - c.o_te_hub(n)) + c.o_te_hub(n);
+@@ -458,8 +487,8 @@ end
+ 
+ % Determine whether to use butterfly fillet topologies
+ for n = 1:nn
+-    if F{n}.flag(1) == 1; c.f_hub_fly(n) = 1; else c.f_hub_fly(n) = 0; end;
+-    if F{n}.flag(2) == 1; c.f_cas_fly(n) = 1; else c.f_cas_fly(n) = 0; end;
++    if F{n}.flag(1) == 1; c.f_hub_fly(n) = 1; else c.f_hub_fly(n) = 0; end
++    if F{n}.flag(2) == 1; c.f_cas_fly(n) = 1; else c.f_cas_fly(n) = 0; end
+ end
+ 
+ % Determine whether to use high or low staggered topologies, default to compressor
+@@ -511,6 +540,10 @@ for v = 1:length(varnames)
+     c.(varnames{v}) = M.(varnames{v});
+ end
+ 
++% ag_script (the AUTOGRID python selector) is a string used above, not a mesh
++% parameter - keep it out of the numeric config.dat that AUTOGRID parses.
++if isfield(c,'ag_script'); c = rmfield(c,'ag_script'); end
++
+ % Write configuration text file
+ fid = fopen([dr.ag file_prefix 'config.dat'],'w');
+ varnames = fieldnames(c);
+@@ -530,6 +563,16 @@ if exist([dr.ag file_prefix(1:end-1) '.g'],'file') ~= 0 && run_ag == 1
+     delete([dr.ag file_prefix(1:end-1) '.trb']);
+ end
+ 
++% Select the AUTOGRID topology script (default = the manual/default-topology
++% mesher). Set M.ag_script = 'ag_rowwizard.py' to instead build the row topology
++% with AUTOGRID's Row Wizard, which yields the 9-block "Axial Fan" layout on the
++% wide, low-blade-count passages that the default topology collapses to 7 blocks.
++if isfield(M,'ag_script') && ~isempty(M.ag_script)
++    ag_script = M.ag_script;
++else
++    ag_script = 'ag_create_machine.py';
++end
++
+ % Loop over until plot3d file is created in case autogrid license is not available
+ n_ag = 1;
+ while exist([dr.ag file_prefix(1:end-1) '.g'],'file') == 0 && run_ag == 1
+@@ -541,8 +584,12 @@ while exist([dr.ag file_prefix(1:end-1) '.g'],'file') == 0 && run_ag == 1
+     % Run AUTOGRID to generate mesh
+     if run_ag == 1
+         fprintf(['%% Running AUTOGRID on ' file_prefix(1:end-1) ' %%\n'])
+-        [~,~] = system('/opt/numeca/bin/igg -batch -autogrid5 -script ./AG/ag_create_machine.py');
+-%         [~,~] = system('/opt/numeca/bin/igg -autogrid5 -script ./AG/ag_create_machine.py');
++        if ispc
++            [~,~] = system(['C:\NUMECA_SOFTWARE\fine171\bin64\iggx86_64.exe -print -autogrid5 '...
++                '-script .\autogrid\' ag_script],'-echo');
++        else
++            [~,~] = system(['igg -autogrid5 -script ./AG/' ag_script]);
++        end
+     end
+     
+     % Check grid quality
+@@ -550,9 +597,6 @@ while exist([dr.ag file_prefix(1:end-1) '.g'],'file') == 0 && run_ag == 1
+         q = ag_quality_check([dr.ag file_prefix(1:end-1) '.qualityReport']);
+         if q.skew < M.skew(1) || q.neg == 1
+             disp(q);
+-%             error('%% Poor cells found %%');
+-%             job = [];
+-%             return;
+             quality_pass = 0;
+             n_ag = n_ag + 1;
+         else
+@@ -569,7 +613,12 @@ while exist([dr.ag file_prefix(1:end-1) '.g'],'file') == 0 && run_ag == 1
+     if exist([dr.ag file_prefix(1:end-1) '.trb'],'file') ~= 0 && quality_pass == 1
+         setenv('directory',dr.ag);
+         setenv('file_prefix',file_prefix);
+-        [~,~] = system('/opt/numeca/bin/igg -batch -script ./AG/ag_igg_machine.py');
++        if ispc
++            [~,~] = system(['C:\NUMECA_SOFTWARE\fine171\bin64\iggx86_64.exe -batch -script '...
++                '.\autogrid\ag_igg_machine.py'],'-echo');
++        else
++            [~,~] = system('igg -batch -script ./AG/ag_igg_machine.py');
++        end
+     end
+     
+     % Check if AUTOGRID has completed successfully, if not restretch blades
+@@ -598,9 +647,6 @@ end
+ 
+ %% Pre-process mesh in MATLAB for running in TURBOSTREAM
+ 
+-% Check whether to run TURBOSTREAM or not
+-if run_ts == 1
+-
+ % Read mesh from AUTOGRID
+ g = ts_autogrid_reader([dr.ag file_prefix(1:end-1) '.bcs'],[dr.ag file_prefix(1:end-1) '.g']);
+ 
+@@ -767,6 +813,7 @@ for n = 1:nn
+ end
+ 
+ % Set rpms on blade rows and then cavities
++ts_check_rpms(g)
+ if exist('xr_rotating','var') ~= 0 && isempty(xr_rotating) == 0
+     g = ts_set_rpms(g,rows,I.rpm,xr_hub,xr_cas,xr_stationary,xr_rotating);
+ else
+@@ -828,7 +875,7 @@ end
+ g{1}.av.write_yplus = 1;
+ 
+ % Set initial velocity in cavities and slots to zero
+-for bid = ts_get_bids(g);
++for bid = ts_get_bids(g)
+     x = mean(g{bid+1}.x(:)); r = mean(g{bid+1}.r(:));
+     if r < interp1(xr_hub(:,1),xr_hub(:,2),x) || r > interp1(xr_cas(:,1),xr_cas(:,2),x)
+         g{bid+1}.rovx = zeros(size(g{bid+1}.rovx));
+@@ -847,7 +894,7 @@ if isfield(I,'vs') == 1; g = ts_set_vs(g,I.vs); g{1}.av.poisson_nstep = I.poisso
+ %% Run file in TURBOSTREAM
+ 
+ % Decide whether to run SA first or Poisson, then ML, then SA
+-if job.run_sa == 0
++if run_ts == 1 && job.run_sa == 0
+     
+     % Run poisson loop and coarse mixing length
+     job.name = [file_prefix 'poisson'];
+@@ -890,7 +937,7 @@ if job.run_sa == 0
+         job = ts_smonitor(ts_sbatch(job,g));
+     end
+     
+-else
++elseif run_ts == 1
+     
+     % Run SA model straight away
+     job.name = file_prefix(1:end-1);
+@@ -911,8 +958,13 @@ else
+ %         g{1}.av.ilos = 1;
+ %         job = ts_smonitor(ts_sbatch(job,g));
+ %     end
+-end
++
++else
++    
++    % Save pre-processed mesh file and do not run
++    save([dr.ts file_prefix 'mesh.mat'],'g')
+ 
+ end
+ 
++
+ end
+\ No newline at end of file
+diff --git a/bl_interp_blade.m b/bl_interp_blade.m
+index 3644e20..4ac845f 100755
+--- a/bl_interp_blade.m
++++ b/bl_interp_blade.m
+@@ -100,7 +100,7 @@ for i = 1:ni
+     r = (xrrt_coarse(i,:,2) - xrrt_coarse(i,1,2)) / (xrrt_coarse(i,end,2) - xrrt_coarse(i,1,2));
+     xrrt(i,q,:) = interp1(reshape(r,[],1),reshape(xrrt_coarse(i,:,:),[],3),r_interp(q),'pchip');
+     xrrt(i,q == 0,:) = interp1(reshape(r_interp(q),[],1),reshape(xrrt(i,q,:),[],3),...
+-        r_interp(q == 0),'pchip','extrap');
++        r_interp(q == 0),'linear','extrap');
+ end
+ 
+ % Plot blade mesh
+diff --git a/bl_normals.m b/bl_normals.m
+index 7da37ed..f33a7c8 100755
+--- a/bl_normals.m
++++ b/bl_normals.m
+@@ -6,7 +6,7 @@ function [n_bl,si,sj,Fn] = bl_normals(xyz,is_blade,smooth_normals)
+ %   xyz - 3 dimensional blade cartesian coordinate array
+ %   is_blade - 0 or 1 to indicate whether to repeat leading edge coordinates
+ %   smooth_normals - 0 or 1 to smooth normals in streamwise direction
+-%   n2 - 3 dimensional blade normal array
++%   n_bl - 3 dimensional blade normal array
+ %   si - 2 dimensional parametric measure of around section distance
+ %   sj - 2 dimensional parametric measure of spanwise distance
+ %   F - data structure of coordinates and normals in parametric coords
+diff --git a/bl_passage_coords.m b/bl_passage_coords.m
+old mode 100644
+new mode 100755
+diff --git a/bl_scale.m b/bl_scale.m
+old mode 100644
+new mode 100755
+diff --git a/bl_write_ibl.m b/bl_write_ibl.m
+index 6c95f3a..4e851d4 100755
+--- a/bl_write_ibl.m
++++ b/bl_write_ibl.m
+@@ -24,6 +24,7 @@ fprintf(fid,'%s\n','Closed Index arclength');
+ write_blade = 0;
+ if isfield(b,'xrrt_F0') == 1
+     xrrt = b.xrrt_F0; write_blade = 1;
++    warning('Using xrrt_F0');
+ elseif isfield(b,'xrrt') == 1
+     xrrt = b.xrrt; write_blade = 1;
+ end
+@@ -64,6 +65,11 @@ end
+ if isfield(b,'xr_hub'); write_curve(fid,b.xr_hub); end
+ if isfield(b,'xr_cas'); write_curve(fid,b.xr_cas); end
+ 
++%Propeller nosecone or tailcone
++if isfield(b,'xr_nose'); write_curve(fid,b.xr_nose); end
++if isfield(b,'xr_tail'); write_curve(fid,b.xr_tail); end
++
++
+ % Disk geometry if present
+ if isfield(b,'xr_disk') == 1
+     
