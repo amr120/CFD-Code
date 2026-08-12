@@ -45,7 +45,7 @@ GOLDEN = (1.0 + 5.0 ** 0.5) / 2.0        # overall figure box = golden ratio
 SERIES = [
     ("CT_new", r"$C_T$",                       "#1f77b4", "o"),
     ("CP_new", r"$C_P$",                       "#2ca02c", "s"),
-    ("eta",    r"$\eta_{\mathrm{propulsive}}$", "#d62728", "D"),
+    ("eta",    r"$\eta_{\mathrm{overall}}$",    "#d62728", "D"),
     ("eps",    r"$\varepsilon$",               "#7f4fbf", "^"),
 ]
 
