@@ -122,13 +122,14 @@ def main():
         ax.set_ylabel(ylab, fontsize=13)
         ax.tick_params(labelsize=11)
 
-        # label Newman's boundary at the top of the axes
-        ytop = ax.get_ylim()[1]
-        ax.annotate(r"Newman $s=0.5$", xy=(NEWMAN_S, ytop), xytext=(4, -3),
-                    textcoords="offset points", rotation=90, va="top", ha="left",
-                    fontsize=11, color=CNEW,
-                    # the boundary sits where the sweep curve is still climbing,
-                    # so the label needs its own ground to stay readable
+        # Label Newman's boundary from the bottom of the axes, reading upward,
+        # as plot_prop_coeffs.py does. Hung from the top it ran straight down
+        # into the sweep curve, which at s = 0.5 is already high in both panels;
+        # below the curve the axes are empty in both.
+        ybot = ax.get_ylim()[0]
+        ax.annotate(r"Newman $s=0.5$", xy=(NEWMAN_S, ybot), xytext=(4, 4),
+                    textcoords="offset points", rotation=90, va="bottom",
+                    ha="left", fontsize=11, color=CNEW,
                     bbox=dict(fc="white", ec="none", pad=0.8, alpha=0.85))
 
         # secondary top axis: blade-count labels at the same solidity positions.
