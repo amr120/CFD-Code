@@ -11,7 +11,7 @@ turning and loss are integrated across the real rotor from the swept CFD.
 Both quantities are computed in make_prop_thrust.m over the blade span (hub -> tip
 Rc), mass-averaged in the rotor-relative frame across the rotor LE and TE planes:
 
-    turning  Delta-beta = | alpha_rel,1 - alpha_rel,2 |            [deg]
+    turning  Delta-beta = | beta_1 - beta_2 |                      [deg]
     loss     Yp = (Po_rel,1 - Po_rel,2) / (Po_rel,1 - P_1)        (cf. Ch.5 Eq. Yp)
 
 and written, with the solidity vector, into <design>_thrust_sweep.mat. Newman's
