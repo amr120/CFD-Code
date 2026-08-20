@@ -30,10 +30,33 @@ import numpy as np
 import scipy.io as sio
 import matplotlib.pyplot as plt
 
-plt.rcParams.update({"font.size": 14, "axes.edgecolor": "black", "axes.linewidth": 1.5})
+# Thesis face, matching plot_prop_turnloss.py: Nimbus Roman body, STIX maths
+# (the class takes the `times` option, so the document's maths is mathptmx),
+# 13 pt drawn at 605 pt wide so it reads at 9.4 pt set at \linewidth.
+plt.rcParams.update({
+    "font.family": "serif",
+    "font.serif": ["Nimbus Roman", "Nimbus Roman No9 L", "Times New Roman",
+                   "Liberation Serif", "DejaVu Serif"],
+    "mathtext.fontset": "stix",
+    "pdf.fonttype": 42,
+    "font.size": 13,
+    "axes.edgecolor": "black",
+    "axes.linewidth": 1.5,
+})
 
-DEFAULT_TS_DIR = "/Data/Engine_Selector/TURBOSTREAM"
-DEFAULT_OUT_DIR = "/Data/Engine_Selector"
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_LOCAL_TS = os.path.join(_HERE, "..", "..", "CFD-Results", "TURBOSTREAM")
+DEFAULT_TS_DIR = ("/Data/Engine_Selector/TURBOSTREAM"
+                  if os.path.isdir("/Data/Engine_Selector/TURBOSTREAM")
+                  else _LOCAL_TS)
+DEFAULT_OUT_DIR = ("/Data/Engine_Selector"
+                   if os.path.isdir("/Data/Engine_Selector")
+                   else os.path.join(_HERE, "..", "..", "CFD-Results"))
+# where the thesis wants it, under the name Chapter 6 includes
+_THESIS_FIGS = next((d for d in (
+    os.path.join(_HERE, "..", "..", "THESIS", "6. Propellers Vs Fans", "Figs"),
+    os.path.join(_HERE, "..", "..", "Reaves-Thesis", "6. Propellers Vs Fans", "Figs"),
+) if os.path.isdir(d)), None)
 DEFAULT_DESIGN = "02062026PropPhi06HYBRID"
 
 CNEW = "#555555"                         # Newman s = 0.5 boundary
@@ -64,8 +87,9 @@ def main():
     sol = np.atleast_1d(d["solidity"]).astype(float)
     Ndes = int(np.atleast_1d(d["Ndes"])[0])
 
-    fig, ax = plt.subplots(figsize=(8.2, 8.2 / GOLDEN))    # overall box = golden ratio
-    fig.subplots_adjust(left=0.10, right=0.965, top=0.86, bottom=0.13)
+    # 8.4 in = 605 pt wide, the width the rest of the thesis figures are drawn
+    fig, ax = plt.subplots(figsize=(8.4, 8.4 / GOLDEN))    # overall box = golden ratio
+    fig.subplots_adjust(left=0.085, right=0.975, top=0.88, bottom=0.125)
 
     # Newman s = 0.5 reference line
     ax.axvline(NEWMAN_S, color=CNEW, ls="--", lw=1.4, zorder=1)
@@ -80,23 +104,26 @@ def main():
     dx = 0.5 * (sol[1] - sol[0])
     ax.set_xlim(min(sol[0] - dx, NEWMAN_S - 0.1), sol[-1] + dx)
     ax.set_ylim(0.0, 0.75)
-    ax.set_xlabel(r"Rotor solidity,  $s = C/S$", fontsize=14)
-    ax.set_ylabel(r"[ - ]", fontsize=14)
-    ax.tick_params(labelsize=14)
+    ax.set_xlabel(r"Rotor solidity,  $s = C/S$", fontsize=13)
+    ax.set_ylabel(r"[ - ]", fontsize=13)
+    ax.tick_params(labelsize=11)
 
     ax.annotate(r"Newman $s=0.5$", xy=(NEWMAN_S, 0.03), xytext=(4, 3),
                 textcoords="offset points", rotation=90, va="bottom", ha="left",
-                fontsize=14, color=CNEW)
+                fontsize=11, color=CNEW,
+                bbox=dict(fc="white", ec="none", pad=0.8, alpha=0.85))
 
-    # blade count on a secondary top axis
+    # blade count on a secondary top axis. Ticks at every count, but only every
+    # other label past N = 9, or the two-digit ones run together at this width.
     axt = ax.secondary_xaxis("top")
     axt.set_xticks(sol)
-    axt.set_xticklabels([f"{int(c)}" for c in counts], fontsize=14)
-    axt.set_xlabel(r"blade count,  $N$", fontsize=14, labelpad=3)
+    axt.set_xticklabels([f"{int(c)}" if c <= 9 or c % 2 == 0 else ""
+                         for c in counts], fontsize=11)
+    axt.set_xlabel(r"blade count,  $N$", fontsize=13, labelpad=3)
     axt.tick_params(length=3)
 
     # legend on the figure, top-right corner
-    ax.legend(loc="lower right", fontsize=14, handlelength=1.6,
+    ax.legend(loc="lower right", fontsize=11, handlelength=1.6,
               frameon=True, facecolor="white", framealpha=0.85, edgecolor="0.8")
 
     out = args.out or os.path.join(DEFAULT_OUT_DIR, "PropCoeffs_vs_Solidity.png")
@@ -104,6 +131,10 @@ def main():
     pdf = os.path.splitext(out)[0] + ".pdf"
     fig.savefig(pdf)
     print(f"saved {out}\n      {pdf}")
+    if _THESIS_FIGS:
+        tf = os.path.join(_THESIS_FIGS, "3D-Coeffs.pdf")
+        fig.savefig(tf)
+        print(f"      {tf}")
 
 
 if __name__ == "__main__":

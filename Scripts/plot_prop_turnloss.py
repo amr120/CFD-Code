@@ -30,11 +30,35 @@ import numpy as np
 import scipy.io as sio
 import matplotlib.pyplot as plt
 
-# 14 pt base font everywhere and a thicker black axes frame (cf. plot_prop_chic.py)
-plt.rcParams.update({"font.size": 14, "axes.edgecolor": "black", "axes.linewidth": 1.5})
+# Thesis face, so the figure does not read as foreign beside the page it sits
+# on. Nimbus Roman is the body font; the class takes the `times` option, which
+# loads mathptmx, so the maths is Times-based and STIX matches it. 13 pt drawn
+# at 605 pt wide reads at 9.4 pt once the figure is set at \linewidth (437 pt).
+# The heavier black axes frame is kept from plot_prop_chic.py.
+plt.rcParams.update({
+    "font.family": "serif",
+    "font.serif": ["Nimbus Roman", "Nimbus Roman No9 L", "Times New Roman",
+                   "Liberation Serif", "DejaVu Serif"],
+    "mathtext.fontset": "stix",
+    "pdf.fonttype": 42,
+    "font.size": 13,
+    "axes.edgecolor": "black",
+    "axes.linewidth": 1.5,
+})
 
-DEFAULT_TS_DIR = "/Data/Engine_Selector/TURBOSTREAM"
-DEFAULT_OUT_DIR = "/Data/Engine_Selector"
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_LOCAL_TS = os.path.join(_HERE, "..", "..", "CFD-Results", "TURBOSTREAM")
+DEFAULT_TS_DIR = ("/Data/Engine_Selector/TURBOSTREAM"
+                  if os.path.isdir("/Data/Engine_Selector/TURBOSTREAM")
+                  else _LOCAL_TS)
+DEFAULT_OUT_DIR = ("/Data/Engine_Selector"
+                   if os.path.isdir("/Data/Engine_Selector")
+                   else os.path.join(_HERE, "..", "..", "CFD-Results"))
+# where the thesis wants it, under the name Chapter 6 includes
+_THESIS_FIGS = next((d for d in (
+    os.path.join(_HERE, "..", "..", "THESIS", "6. Propellers Vs Fans", "Figs"),
+    os.path.join(_HERE, "..", "..", "Reaves-Thesis", "6. Propellers Vs Fans", "Figs"),
+) if os.path.isdir(d)), None)
 DEFAULT_DESIGN = "02062026PropPhi06HYBRID"
 
 COL = "#2059a8"        # sweep line / markers
@@ -70,8 +94,11 @@ def main():
         (Yp, r"Loss coefficient,  $Y_p$"),
     ]
 
-    fig, axes = plt.subplots(1, 2, figsize=(10.6, 10.6 / GOLDEN))   # overall box = golden
-    fig.subplots_adjust(left=0.075, right=0.985, top=0.86, bottom=0.10, wspace=0.26)
+    # 8.4 in = 605 pt wide, the width the rest of the thesis figures are drawn
+    fig, axes = plt.subplots(1, 2, figsize=(8.4, 8.4 / GOLDEN))   # overall box = golden
+    # top raised from 0.86: the suptitle it used to leave room for is gone, and
+    # only the secondary blade-count axis and its label sit above the panels now
+    fig.subplots_adjust(left=0.085, right=0.985, top=0.88, bottom=0.115, wspace=0.28)
 
     ides = np.where(counts == Ndes)[0]
     for ax, (y, ylab) in zip(axes, panels):
@@ -91,7 +118,7 @@ def main():
         ax.set_xlim(min(sol[0] - dx, NEWMAN_S - 0.1), sol[-1] + dx)
         lo, hi = ax.get_ylim()
         ax.set_ylim(min(0.0, lo), hi + 0.08 * (hi - lo))
-        ax.set_xlabel(r"Rotor solidity,  $s = C/S$", fontsize=12.5)
+        ax.set_xlabel(r"Rotor solidity,  $s = C/S$", fontsize=13)
         ax.set_ylabel(ylab, fontsize=13)
         ax.tick_params(labelsize=11)
 
@@ -99,28 +126,37 @@ def main():
         ytop = ax.get_ylim()[1]
         ax.annotate(r"Newman $s=0.5$", xy=(NEWMAN_S, ytop), xytext=(4, -3),
                     textcoords="offset points", rotation=90, va="top", ha="left",
-                    fontsize=9, color=CNEW)
+                    fontsize=11, color=CNEW,
+                    # the boundary sits where the sweep curve is still climbing,
+                    # so the label needs its own ground to stay readable
+                    bbox=dict(fc="white", ec="none", pad=0.8, alpha=0.85))
 
-        # secondary top axis: blade-count labels at the same solidity positions
+        # secondary top axis: blade-count labels at the same solidity positions.
+        # Ticks at every count, but only every other label past N = 9: solidity
+        # is near enough linear in N that the two-digit labels would otherwise
+        # run into each other at this width.
         axt = ax.secondary_xaxis("top")
         axt.set_xticks(sol)
-        axt.set_xticklabels([f"{int(c)}" for c in counts], fontsize=9.5)
-        axt.set_xlabel(r"blade count,  $N$", fontsize=10, labelpad=3)
+        axt.set_xticklabels([f"{int(c)}" if c <= 9 or c % 2 == 0 else ""
+                             for c in counts], fontsize=11)
+        axt.set_xlabel(r"blade count,  $N$", fontsize=13, labelpad=3)
         axt.tick_params(length=3)
 
         if ax is axes[0]:
             handles = [h_cfd] + ([h_des] if h_des is not None else [])
-            ax.legend(handles=handles, loc="lower right", fontsize=9.5, frameon=False)
+            ax.legend(handles=handles, loc="lower right", fontsize=11, frameon=False)
 
-    fig.suptitle(
-        "3D rotor turning and loss vs solidity",
-        fontsize=14, fontweight="bold", y=0.98)
+    # No on-figure title: the caption of Figure 6.7 already says what this is.
 
     out = args.out or os.path.join(DEFAULT_OUT_DIR, "PropTurnLoss_vs_Solidity.png")
     fig.savefig(out, dpi=200)
     pdf = os.path.splitext(out)[0] + ".pdf"
     fig.savefig(pdf)
     print(f"saved {out}\n      {pdf}")
+    if _THESIS_FIGS:
+        tf = os.path.join(_THESIS_FIGS, "3D-TurnLoss.pdf")
+        fig.savefig(tf)
+        print(f"      {tf}")
 
 
 if __name__ == "__main__":
