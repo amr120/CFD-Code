@@ -464,8 +464,9 @@ def main():
         handles2.append(mlines.Line2D([], [], color=col, lw=2.5,
                                       label=design_label(design)))
 
-    # varepsilon, as the thesis body and nomenclature set it, not \epsilon
-    ax2.set_xlabel(r"$\varepsilon = V_{\mathrm{fs}} / V_{\mathrm{j}}$")
+    # varepsilon, as the thesis body and nomenclature set it, not \epsilon, and
+    # italic subscripts to match the caption sitting under it on the same page
+    ax2.set_xlabel(r"$\varepsilon = V_{fs} / V_j$")
     ax2.set_ylabel("Total-Total Fan Efficiency")
     ax2.grid(True)
     ax2.margins(x=0.13, y=0.10)
