@@ -113,13 +113,13 @@ def main():
                 fontsize=11, color=CNEW,
                 bbox=dict(fc="white", ec="none", pad=0.8, alpha=0.85))
 
-    # blade count on a secondary top axis. Ticks at every count, but only every
-    # other label past N = 9, or the two-digit ones run together at this width.
+    # Blade count on a secondary top axis, every count labelled. This panel is
+    # twice as wide as one of Figure 6.7's, so 11 pt clears comfortably here.
+    # B, not N: the nomenclature has B for the number of blades.
     axt = ax.secondary_xaxis("top")
     axt.set_xticks(sol)
-    axt.set_xticklabels([f"{int(c)}" if c <= 9 or c % 2 == 0 else ""
-                         for c in counts], fontsize=11)
-    axt.set_xlabel(r"blade count,  $N$", fontsize=13, labelpad=3)
+    axt.set_xticklabels([f"{int(c)}" for c in counts], fontsize=11)
+    axt.set_xlabel(r"blade count,  $B$", fontsize=13, labelpad=3)
     axt.tick_params(length=3)
 
     # legend on the figure, top-right corner

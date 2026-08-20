@@ -111,7 +111,7 @@ def main():
         if ides.size:
             h_des, = ax.plot(sol[ides], y[ides], "*", ms=15, mfc=CDES, mec="white",
                              mew=0.8, zorder=4,
-                             label=rf"design ($s$ = {sol[ides][0]:.2f}, N = {Ndes})")
+                             label=rf"design ($s$ = {sol[ides][0]:.2f}, $B$ = {Ndes})")
         ax.grid(True, alpha=0.25, lw=0.7)
         ax.set_axisbelow(True)
         dx = 0.5 * (sol[1] - sol[0])
@@ -132,15 +132,14 @@ def main():
                     ha="left", fontsize=11, color=CNEW,
                     bbox=dict(fc="white", ec="none", pad=0.8, alpha=0.85))
 
-        # secondary top axis: blade-count labels at the same solidity positions.
-        # Ticks at every count, but only every other label past N = 9: solidity
-        # is near enough linear in N that the two-digit labels would otherwise
-        # run into each other at this width.
+        # Secondary top axis: every blade count labelled. Solidity is near
+        # enough linear in B, so the 20 counts sit about 12 pt apart at this
+        # width and the two-digit labels need to be set at 9 pt to clear each
+        # other. B, not N: the nomenclature has B for the number of blades.
         axt = ax.secondary_xaxis("top")
         axt.set_xticks(sol)
-        axt.set_xticklabels([f"{int(c)}" if c <= 9 or c % 2 == 0 else ""
-                             for c in counts], fontsize=11)
-        axt.set_xlabel(r"blade count,  $N$", fontsize=13, labelpad=3)
+        axt.set_xticklabels([f"{int(c)}" for c in counts], fontsize=9)
+        axt.set_xlabel(r"blade count,  $B$", fontsize=13, labelpad=3)
         axt.tick_params(length=3)
 
         if ax is axes[0]:
