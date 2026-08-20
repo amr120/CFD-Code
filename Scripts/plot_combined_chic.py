@@ -34,8 +34,19 @@ import scipy.io as sio
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 
-# 14 pt base font everywhere and a thicker black axes frame (match the other plots)
-plt.rcParams.update({"font.size": 14, "axes.edgecolor": "black", "axes.linewidth": 1.5})
+# Thesis face, matching plot_prop_chic.py: Nimbus Roman body, STIX maths (the
+# class takes the `times` option, so the document's maths is mathptmx). The
+# heavier black axes frame is kept.
+plt.rcParams.update({
+    "font.family": "serif",
+    "font.serif": ["Nimbus Roman", "Nimbus Roman No9 L", "Times New Roman",
+                   "Liberation Serif", "DejaVu Serif"],
+    "mathtext.fontset": "stix",
+    "pdf.fonttype": 42,
+    "font.size": 13,
+    "axes.edgecolor": "black",
+    "axes.linewidth": 1.5,
+})
 
 DEFAULT_TS_DIR = "/Data/Engine_Selector/TURBOSTREAM"
 DEFAULT_DF_DESIGNS = ["Phi06DUCTEDFANFIXRPM", "Phi075DUCTEDFANFIXRPM",
@@ -275,7 +286,9 @@ def main():
     cmap = plt.get_cmap("viridis")
 
     golden = (1.0 + 5.0 ** 0.5) / 2.0
-    width = 8.5
+    # thesis Figure 5.12, set at 0.85\linewidth (372 pt): drawn 7.14 in (514 pt)
+    # so the 13 pt lettering reads at 9.4 pt on the page
+    width = 7.14
     fig, ax = plt.subplots(figsize=(width, width / golden))
 
     handles = []

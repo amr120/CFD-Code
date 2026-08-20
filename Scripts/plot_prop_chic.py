@@ -29,8 +29,25 @@ import numpy as np
 import scipy.io as sio
 import matplotlib.pyplot as plt
 
-# 14 pt base font everywhere and a thicker black axes frame
-plt.rcParams.update({"font.size": 14, "axes.edgecolor": "black", "axes.linewidth": 1.5})
+# Thesis face: Nimbus Roman is the body font, and the class takes the `times`
+# option so the maths is mathptmx, which STIX matches. The heavier black axes
+# frame is kept. 13 pt is the base; see W_FULL / W_085 for how that lands at
+# 9.4 pt on the page.
+plt.rcParams.update({
+    "font.family": "serif",
+    "font.serif": ["Nimbus Roman", "Nimbus Roman No9 L", "Times New Roman",
+                   "Liberation Serif", "DejaVu Serif"],
+    "mathtext.fontset": "stix",
+    "pdf.fonttype": 42,
+    "font.size": 13,
+    "axes.edgecolor": "black",
+    "axes.linewidth": 1.5,
+})
+
+# Thesis \linewidth is 437.46 pt. A figure set at \linewidth is drawn 8.4 in
+# (605 pt) wide so its 13 pt lettering reads at 9.4 pt; one set at
+# 0.85\linewidth is drawn 7.14 in (514 pt) for the same 9.4 pt.
+W_FULL, W_085 = 8.4, 7.14
 
 DEFAULT_TS_DIR = "/Data/Engine_Selector/TURBOSTREAM"
 DEFAULT_GEOM_DIR = "/Data/Engine_Selector/Geometry"
@@ -434,7 +451,8 @@ def main():
     print("saved", args.out)
 
     # ---- Figure 2: epsilon (V_in / V_exit) vs total-total fan efficiency ----
-    fig2, ax2 = plt.subplots(figsize=(width, width / golden))
+    # thesis Figure 5.13, set at 0.85\linewidth
+    fig2, ax2 = plt.subplots(figsize=(W_085, W_085 / golden))
     handles2 = []
     for i, (design, ops, phi, cptt, eta, eps, yp, J, Chi, sigma, Vx_ratio) in enumerate(data):
         col = colours[i % len(colours)]                      # colour = design
@@ -446,7 +464,8 @@ def main():
         handles2.append(mlines.Line2D([], [], color=col, lw=2.5,
                                       label=design_label(design)))
 
-    ax2.set_xlabel(r"$\epsilon = V_{\mathrm{fs}} / V_{\mathrm{j}}$")
+    # varepsilon, as the thesis body and nomenclature set it, not \epsilon
+    ax2.set_xlabel(r"$\varepsilon = V_{\mathrm{fs}} / V_{\mathrm{j}}$")
     ax2.set_ylabel("Total-Total Fan Efficiency")
     ax2.grid(True)
     ax2.margins(x=0.13, y=0.10)
@@ -494,7 +513,8 @@ def main():
 
     # ---- Figure 4: spanwise rotor loss profile Yp(span) at one condition ----
     cond = args.span_cond
-    fig4, ax4 = plt.subplots(figsize=(width, width / golden))
+    # thesis Figure 5.11, set at \linewidth
+    fig4, ax4 = plt.subplots(figsize=(W_FULL, W_FULL / golden))
     design_handles4 = []
     for i, design in enumerate(args.designs):
         col = colours[i % len(colours)]
@@ -528,7 +548,7 @@ def main():
 
     ax4.set_xlabel(r"Stagnation Pressure Loss Coefficient, $Y_p$")
     ax4.set_ylabel("Cumulative Mass-Flow Fraction (hub $\\to$ tip)")
-    ax4.set_title("%s" % OP_NAMES.get(cond, "O%d" % cond))
+    # No on-figure title: the caption of Figure 5.11 names the condition.
     ax4.set_xlim(-0.01, 0.08)            # clip hub/tip end singularities (cf. entrop_loss_prop.m)
     ax4.set_ylim(0, 1)
     ax4.grid(True)
