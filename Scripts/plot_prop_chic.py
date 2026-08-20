@@ -553,11 +553,15 @@ def main():
     ax4.set_xlim(-0.01, 0.08)            # clip hub/tip end singularities (cf. entrop_loss_prop.m)
     ax4.set_ylim(0, 1)
     ax4.grid(True)
-    leg4 = ax4.legend(handles=design_handles4, frameon=True, loc="upper left", title="Design")
+    # Solid white behind both legends. matplotlib's default frame alpha is 0.8,
+    # which let the grid and the loss profiles show through them.
+    leg4 = ax4.legend(handles=design_handles4, frameon=True, loc="upper left",
+                      title="Design", facecolor="white", framealpha=1.0)
     leg4.get_frame().set_edgecolor("black")
     leg4.get_frame().set_linewidth(1.3)
     ax4.add_artist(leg4)
-    leg4s = ax4.legend(handles=src_handles, frameon=True, loc="lower left", title="Source")
+    leg4s = ax4.legend(handles=src_handles, frameon=True, loc="lower left",
+                       title="Source", facecolor="white", framealpha=1.0)
     leg4s.get_frame().set_edgecolor("black")
     leg4s.get_frame().set_linewidth(1.3)
     fig4.tight_layout()
