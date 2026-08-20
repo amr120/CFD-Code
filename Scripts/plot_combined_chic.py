@@ -320,7 +320,10 @@ def main():
     ax.set_xlim(allphi.min() - 2.6 * xpad, allphi.max() + xpad)
     ax.set_ylim(allcptt.min() - 2.4 * ypad, allcptt.max() + ypad)
 
-    leg = ax.legend(handles=handles, frameon=True, loc="lower left", title="Design")
+    # solid white, not matplotlib's default 0.8 frame alpha, so the grid and
+    # the characteristics do not show through the box
+    leg = ax.legend(handles=handles, frameon=True, loc="lower left",
+                    title="Design", facecolor="white", framealpha=1.0)
     leg.get_frame().set_edgecolor("black")
     leg.get_frame().set_linewidth(1.3)
     fig.tight_layout()

@@ -470,11 +470,14 @@ def main():
     ax2.set_ylabel("Total-Total Fan Efficiency")
     ax2.grid(True)
     ax2.margins(x=0.13, y=0.10)
-    leg2 = ax2.legend(handles=handles2, frameon=True, loc="upper left", title="Design")
+    # solid white, as on the other two Chapter 5 CFD figures
+    leg2 = ax2.legend(handles=handles2, frameon=True, loc="upper left",
+                      title="Design", facecolor="white", framealpha=1.0)
     leg2.get_frame().set_edgecolor("black")
     leg2.get_frame().set_linewidth(1.3)
     ax2.add_artist(leg2)
-    legc2 = ax2.legend(handles=cond_handles, frameon=True, loc="lower right", title="Condition")
+    legc2 = ax2.legend(handles=cond_handles, frameon=True, loc="lower right",
+                       title="Condition", facecolor="white", framealpha=1.0)
     legc2.get_frame().set_edgecolor("black")
     legc2.get_frame().set_linewidth(1.3)
     fig2.tight_layout()
